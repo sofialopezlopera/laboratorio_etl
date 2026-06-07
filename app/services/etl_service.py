@@ -17,6 +17,10 @@ def transformar_productos(documentos: List[Dict[str, Any]]) -> pd.DataFrame:
     df_sql["alto"] = _numero(df, "dimensions.height", float)
     df_sql["profundidad"] = _numero(df, "dimensions.depth", float)
     
+    reviews = _serie(df, "reviews", [])
+    df_sql["cantidad_reviews"] = reviews.apply(_cantidad_reviews).astype(int)
+    df_sql["promedio_reviews"] = reviews.apply(_promedio_reviews).astype(float)
+    
     return df_sql
 
 
@@ -25,6 +29,25 @@ def _serie(df: pd.DataFrame, columna: str, valor_por_defecto: Any) -> pd.Series:
         return df[columna]
     return pd.Series([valor_por_defecto] * len(df))
 
+
 def _numero(df: pd.DataFrame, columna: str, tipo):
     serie = pd.to_numeric(_serie(df, columna, 0), errors="coerce").fillna(0)
     return serie.astype(tipo)
+
+
+def _cantidad_reviews(valor: Any) -> int:
+    return len(valor) if isinstance(valor, list) else 0
+
+
+def _promedio_reviews(valor: Any) -> float:
+    if not isinstance(valor, list):
+        return 0.0
+
+    ratings = [
+        review.get("rating")
+        for review in valor
+        if isinstance(review, dict) and review.get("rating") is not None
+    ]
+    if not ratings:
+        return 0.0
+    return round(sum(ratings) / len(ratings), 2)
