@@ -1,8 +1,19 @@
 from typing import Any, Dict, List
 
 import pandas as pd
+import requests
+from fastapi import HTTPException
+from sqlalchemy import func, select, text
+from sqlalchemy.dialects.mysql import insert as mysql_insert
 
-from app.database import get_mongo_collection
+from app.config import settings
+from app.database import SessionLocal, create_sql_tables, get_mongo_collection
+from app.models.productos_sql import ProductoSQL
+
+
+FUENTE = "DummyJSON Products API"
+TABLA_DESTINO = ProductoSQL.__tablename__
+
 
 def obtener_productos_desde_mongo() -> List[Dict[str, Any]]:
     collection = get_mongo_collection()
@@ -30,7 +41,6 @@ def transformar_productos(documentos: List[Dict[str, Any]]) -> pd.DataFrame:
     df_sql["alto"] = _numero(df, "dimensions.height", float)
     df_sql["profundidad"] = _numero(df, "dimensions.depth", float)
     
-    
     reviews = _serie(df, "reviews", [])
     df_sql["cantidad_reviews"] = reviews.apply(_cantidad_reviews).astype(int)
     df_sql["promedio_reviews"] = reviews.apply(_promedio_reviews).astype(float)
@@ -46,6 +56,28 @@ def transformar_productos(documentos: List[Dict[str, Any]]) -> pd.DataFrame:
     df_sql["stock_bajo"] = stock.lt(10)
     
     return df_sql
+
+
+def cargar_productos_en_mysql(dataframe: pd.DataFrame) -> int:
+    create_sql_tables()
+    registros = [_normalizar_registro(registro) for registro in dataframe.to_dict("records")]
+
+    if not registros:
+        return 0
+
+    insert_stmt = mysql_insert(ProductoSQL).values(registros)
+    update_columns = {
+        column.name: insert_stmt.inserted[column.name]
+        for column in ProductoSQL.__table__.columns
+        if column.name != "id_producto"
+    }
+    upsert_stmt = insert_stmt.on_duplicate_key_update(**update_columns)
+
+    with SessionLocal() as session:
+        session.execute(upsert_stmt)
+        session.commit()
+
+    return len(registros)
 
 
 def _serie(df: pd.DataFrame, columna: str, valor_por_defecto: Any) -> pd.Series:
