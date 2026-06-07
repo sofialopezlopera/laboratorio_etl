@@ -87,3 +87,15 @@ def _promedio_reviews(valor: Any) -> float:
     if not ratings:
         return 0.0
     return round(sum(ratings) / len(ratings), 2)
+
+
+def _normalizar_registro(registro: Dict[str, Any]) -> Dict[str, Any]:
+    limpio = {}
+    for clave, valor in registro.items():
+        if pd.isna(valor):
+            limpio[clave] = None
+        elif hasattr(valor, "item"):
+            limpio[clave] = valor.item()
+        else:
+            limpio[clave] = valor
+    return limpio
