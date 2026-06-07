@@ -15,6 +15,46 @@ FUENTE = "DummyJSON Products API"
 TABLA_DESTINO = ProductoSQL.__tablename__
 
 
+def transformar_y_cargar() -> Dict[str, Any]:
+    documentos = obtener_productos_desde_mongo()
+    if not documentos:
+        raise HTTPException(
+            status_code=400,
+            detail="No hay productos en MongoDB. Ejecute primero /api/v1/etl/extraer.",
+        )
+
+    dataframe = transformar_productos(documentos)
+    registros = cargar_productos_en_mysql(dataframe)
+
+    return {
+        "mensaje": "Pipeline finalizado",
+        "registros_procesados": registros,
+        "tabla_destino": TABLA_DESTINO,
+        "status": 200,
+    }
+
+
+def resetear_sistema() -> Dict[str, Any]:
+    collection = get_mongo_collection()
+    mongo_docs_eliminados = collection.count_documents({})
+    collection.delete_many({})
+
+    create_sql_tables()
+    with SessionLocal() as session:
+        mysql_rows_eliminadas = session.execute(
+            select(func.count()).select_from(ProductoSQL)
+        ).scalar_one()
+        session.execute(text(f"TRUNCATE TABLE {TABLA_DESTINO}"))
+        session.commit()
+
+    return {
+        "mensaje": "Sistema reseteado correctamente",
+        "mongo_docs_eliminados": int(mongo_docs_eliminados),
+        "mysql_rows_eliminadas": int(mysql_rows_eliminadas),
+        "status": 200,
+    }
+    
+
 def obtener_productos_desde_mongo() -> List[Dict[str, Any]]:
     collection = get_mongo_collection()
     return list(collection.find({}).sort("_id", 1))
