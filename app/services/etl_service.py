@@ -21,6 +21,9 @@ def transformar_productos(documentos: List[Dict[str, Any]]) -> pd.DataFrame:
     df_sql["cantidad_reviews"] = reviews.apply(_cantidad_reviews).astype(int)
     df_sql["promedio_reviews"] = reviews.apply(_promedio_reviews).astype(float)
     
+    fechas = pd.to_datetime(_serie(df, "meta.createdAt", None), errors="coerce", utc=True)
+    df_sql["fecha_creacion"] = fechas.dt.date.where(fechas.notna(), None)
+    
     return df_sql
 
 
