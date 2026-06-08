@@ -7,3 +7,6 @@ __pycache__/
 .ruff_cache/
 .env
 *.log
+.vscode/
+# Archivos de sistema de macOS (evita conflictos en equipos Windows/Mac)
+.DS_Store
