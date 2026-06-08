@@ -49,8 +49,15 @@ def transformar_y_cargar() -> Dict[str, Any]:
             detail="No hay productos en MongoDB. Ejecute primero /api/v1/etl/extraer.",
         )
 
-    dataframe = transformar_productos(documentos)
-    registros = cargar_productos_en_mysql(dataframe)
+    try:
+        dataframe = transformar_productos(documentos)
+        registros = cargar_productos_en_mysql(dataframe)
+    except Exception as e:
+        # Esto es lo que hace que el commit sea "bueno"
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error crítico durante la transformación o carga: {str(e)}"
+        )
 
     return {
         "mensaje": "Pipeline finalizado",
