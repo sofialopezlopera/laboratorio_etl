@@ -37,3 +37,16 @@ def analizar_columna(nombre: str) -> Dict[str, Any]:
     if isinstance(columna.type, (Integer, Float, Numeric)):
         return _analizar_numerica(nombre, valores_validos, nulos)
     return _analizar_categorica(nombre, valores_validos, nulos)
+
+def _analizar_categorica(nombre: str, valores: List[Any], nulos: int) -> Dict[str, Any]:
+    serie = pd.Series([str(valor) for valor in valores])
+    distribucion = serie.value_counts().to_dict()
+
+    return {
+        "columna": nombre,
+        "tipo": "categorica",
+        "valores_unicos": int(serie.nunique()) if not serie.empty else 0,
+        "distribucion": distribucion,
+        "valor_mas_comun": serie.mode().iloc[0] if not serie.empty else None,
+        "nulos": nulos,
+    }
