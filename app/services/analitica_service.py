@@ -50,3 +50,29 @@ def _analizar_categorica(nombre: str, valores: List[Any], nulos: int) -> Dict[st
         "valor_mas_comun": serie.mode().iloc[0] if not serie.empty else None,
         "nulos": nulos,
     }
+
+def _analizar_numerica(nombre: str, valores: List[Any], nulos: int) -> Dict[str, Any]:
+    serie = pd.Series(valores, dtype="float64")
+
+    if serie.empty:
+        return {
+            "columna": nombre,
+            "tipo": "numerica",
+            "min": None,
+            "max": None,
+            "promedio": None,
+            "mediana": None,
+            "desviacion_std": None,
+            "nulos": nulos,
+        }
+
+    return {
+        "columna": nombre,
+        "tipo": "numerica",
+        "min": round(float(serie.min()), 2),
+        "max": round(float(serie.max()), 2),
+        "promedio": round(float(serie.mean()), 2),
+        "mediana": round(float(serie.median()), 2),
+        "desviacion_std": round(float(serie.std(ddof=0)), 2),
+        "nulos": nulos,
+    }
