@@ -150,6 +150,8 @@ def _descargar_productos(cantidad: int) -> List[Dict[str, Any]]:
 
     while len(productos) < cantidad:
         limite = min(100, cantidad - len(productos))
+
+# Implementación de paginación para evitar errores de memoria
         params = {"limit": limite, "skip": skip}
 
         try:
