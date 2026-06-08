@@ -118,7 +118,7 @@ def transformar_productos(documentos: List[Dict[str, Any]]) -> pd.DataFrame:
     stock = pd.to_numeric(_serie(df, "stock", 0), errors="coerce").fillna(0)
     df_sql["tiene_descuento"] = descuento.gt(0)
     df_sql["stock_bajo"] = stock.lt(10)
-
+    
     return df_sql
 
 
