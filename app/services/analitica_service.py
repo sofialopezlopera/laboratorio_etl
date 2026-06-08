@@ -129,3 +129,38 @@ def _como_fecha(valor: Any):
     if pd.isna(convertido):
         return None
     return convertido.date()
+
+def obtener_perfil_dual(producto_id: int) -> Dict[str, Any]:
+    collection = get_mongo_collection()
+    vista_mongo = collection.find_one({"_id": producto_id})
+
+    create_sql_tables()
+    with SessionLocal() as session:
+        producto_sql = session.get(ProductoSQL, producto_id)
+
+    vista_sql = producto_sql.to_dict() if producto_sql else None
+
+    if vista_mongo is None and vista_sql is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No existe el producto {producto_id} en MongoDB ni en MySQL.",
+        )
+
+    respuesta = {
+        "id": producto_id,
+        "vista_mongo": vista_mongo,
+        "vista_sql": vista_sql,
+    }
+
+    if vista_mongo is None:
+        respuesta["warning"] = (
+            "Registro existe en MySQL pero no en MongoDB. "
+            "Puede haberse borrado staging despues de transformar."
+        )
+    elif vista_sql is None:
+        respuesta["warning"] = (
+            "Registro existe en MongoDB pero no en MySQL. "
+            "Posiblemente no se ha ejecutado /transformar o fallo la transformacion."
+        )
+
+    return respuesta
