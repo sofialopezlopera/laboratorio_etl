@@ -76,3 +76,56 @@ def _analizar_numerica(nombre: str, valores: List[Any], nulos: int) -> Dict[str,
         "desviacion_std": round(float(serie.std(ddof=0)), 2),
         "nulos": nulos,
     }
+
+def _analizar_fecha(nombre: str, valores: List[Any], nulos: int) -> Dict[str, Any]:
+    fechas = [_como_fecha(valor) for valor in valores]
+    fechas = [valor for valor in fechas if valor is not None]
+
+    if not fechas:
+        return {
+            "columna": nombre,
+            "tipo": "fecha",
+            "min": None,
+            "max": None,
+            "rango_dias": None,
+            "nulos": nulos,
+        }
+
+    fecha_min = min(fechas)
+    fecha_max = max(fechas)
+
+    return {
+        "columna": nombre,
+        "tipo": "fecha",
+        "min": fecha_min.isoformat(),
+        "max": fecha_max.isoformat(),
+        "rango_dias": (fecha_max - fecha_min).days,
+        "nulos": nulos,
+    }
+
+
+def _analizar_booleana(nombre: str, valores: List[Any], nulos: int) -> Dict[str, Any]:
+    verdaderos = sum(1 for valor in valores if bool(valor) is True)
+    falsos = sum(1 for valor in valores if bool(valor) is False)
+
+    return {
+        "columna": nombre,
+        "tipo": "booleana",
+        "true": verdaderos,
+        "false": falsos,
+        "nulos": nulos,
+    }
+
+
+def _como_fecha(valor: Any):
+    if isinstance(valor, datetime):
+        return valor.date()
+    if isinstance(valor, date):
+        return valor
+    try:
+        convertido = pd.to_datetime(valor, errors="coerce")
+    except Exception:
+        return None
+    if pd.isna(convertido):
+        return None
+    return convertido.date()
