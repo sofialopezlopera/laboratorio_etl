@@ -14,7 +14,6 @@ from app.models.productos_sql import ProductoSQL
 FUENTE = "DummyJSON Products API"
 TABLA_DESTINO = ProductoSQL.__tablename__
 
-
 def extraer_productos(cantidad: int) -> Dict[str, Any]:
     if cantidad <= 0:
         raise HTTPException(
@@ -40,7 +39,6 @@ def extraer_productos(cantidad: int) -> Dict[str, Any]:
         "status": 201,
     }
 
-
 def transformar_y_cargar() -> Dict[str, Any]:
     documentos = obtener_productos_desde_mongo()
     if not documentos:
@@ -48,12 +46,10 @@ def transformar_y_cargar() -> Dict[str, Any]:
             status_code=400,
             detail="No hay productos en MongoDB. Ejecute primero /api/v1/etl/extraer.",
         )
-
     try:
         dataframe = transformar_productos(documentos)
         registros = cargar_productos_en_mysql(dataframe)
     except Exception as e:
-        # Esto es lo que hace que el commit sea "bueno"
         raise HTTPException(
             status_code=500,
             detail=f"Error crítico durante la transformación o carga: {str(e)}"
@@ -87,7 +83,6 @@ def resetear_sistema() -> Dict[str, Any]:
         "status": 200,
     }
 
-
 def obtener_productos_desde_mongo() -> List[Dict[str, Any]]:
     collection = get_mongo_collection()
     return list(collection.find({}).sort("_id", 1))
@@ -96,7 +91,6 @@ def obtener_productos_desde_mongo() -> List[Dict[str, Any]]:
 def transformar_productos(documentos: List[Dict[str, Any]]) -> pd.DataFrame:
     df = pd.json_normalize(documentos)
     df_sql = pd.DataFrame()
-
     id_series = _serie_id(df)
     df_sql["id_producto"] = pd.to_numeric(id_series, errors="coerce").fillna(0).astype(int)
     df_sql["titulo"] = _texto(df, "title", 255)
@@ -110,14 +104,14 @@ def transformar_productos(documentos: List[Dict[str, Any]]) -> pd.DataFrame:
     df_sql["ancho"] = _numero(df, "dimensions.width", float)
     df_sql["alto"] = _numero(df, "dimensions.height", float)
     df_sql["profundidad"] = _numero(df, "dimensions.depth", float)
-
+    
     reviews = _serie(df, "reviews", [])
     df_sql["cantidad_reviews"] = reviews.apply(_cantidad_reviews).astype(int)
     df_sql["promedio_reviews"] = reviews.apply(_promedio_reviews).astype(float)
-
+    
     fechas = pd.to_datetime(_serie(df, "meta.createdAt", None), errors="coerce", utc=True)
     df_sql["fecha_creacion"] = fechas.dt.date.where(fechas.notna(), None)
-
+    
     descuento = pd.to_numeric(
         _serie(df, "discountPercentage", 0), errors="coerce"
     ).fillna(0)
@@ -148,7 +142,6 @@ def cargar_productos_en_mysql(dataframe: pd.DataFrame) -> int:
         session.commit()
 
     return len(registros)
-
 
 def _descargar_productos(cantidad: int) -> List[Dict[str, Any]]:
     productos: List[Dict[str, Any]] = []
@@ -188,7 +181,6 @@ def _descargar_productos(cantidad: int) -> List[Dict[str, Any]]:
             break
 
     return productos[:cantidad]
-
 
 def _serie(df: pd.DataFrame, columna: str, valor_por_defecto: Any) -> pd.Series:
     if columna in df.columns:
