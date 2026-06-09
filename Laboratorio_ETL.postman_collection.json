@@ -1,0 +1,164 @@
+{
+  "info": {
+    "_postman_id": "f6eab2c5-3d77-4d18-8f5b-7c2f1f6f0b01",
+    "name": "Laboratorio ETL",
+    "description": "Colección para probar los 5 endpoints del laboratorio ETL con FastAPI, MongoDB y MySQL.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000"
+    }
+  ],
+  "item": [
+    {
+      "name": "ETL",
+      "item": [
+        {
+          "name": "Extraer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cantidad\": 50\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/etl/extraer",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "etl", "extraer"]
+            }
+          }
+        },
+        {
+          "name": "Transformar",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/etl/transformar",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "etl", "transformar"]
+            }
+          }
+        },
+        {
+          "name": "Reset",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/etl/reset",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "etl", "reset"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Analitica",
+      "item": [
+        {
+          "name": "Analisis Precio",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/analitica/columna/precio",
+              "host": ["{{base_url}}"],
+              "path": [
+                "api",
+                "v1",
+                "analitica",
+                "columna",
+                "precio"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Analisis Categoria",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/analitica/columna/category",
+              "host": ["{{base_url}}"],
+              "path": [
+                "api",
+                "v1",
+                "analitica",
+                "columna",
+                "category"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Analisis Fecha",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/analitica/columna/fecha_creacion",
+              "host": ["{{base_url}}"],
+              "path": [
+                "api",
+                "v1",
+                "analitica",
+                "columna",
+                "fecha_creacion"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Perfil Dual",
+      "item": [
+        {
+          "name": "Perfil ID 1",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/perfil/1",
+              "host": ["{{base_url}}"],
+              "path": [
+                "api",
+                "v1",
+                "perfil",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Perfil ID 10",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/perfil/10",
+              "host": ["{{base_url}}"],
+              "path": [
+                "api",
+                "v1",
+                "perfil",
+                "10"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
